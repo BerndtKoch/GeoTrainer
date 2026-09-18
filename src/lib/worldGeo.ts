@@ -8,9 +8,34 @@ const topology = worldTopology as unknown as Topology;
 const countriesObject = topology.objects.countries as GeometryCollection;
 const countryFeatures = feature(topology, countriesObject) as unknown as FeatureCollection<Geometry>;
 
-const FEATURE_BY_CCN3 = new Map<string, Feature<Geometry>>(
-  countryFeatures.features.map((f) => [String(f.id), f])
-);
+// A handful of ISO numeric codes are shared by more than one entry in this
+// dataset — e.g. Australia and "Ashmore and Cartier Is." (an uninhabited
+// external territory) both carry id "036". Naively keying a Map by id lets
+// whichever one comes later in the array silently win, which is how
+// Australia's shape got replaced by a tiny 5-point rectangle. Keep the
+// largest-area entry per id instead, so the sovereign country always wins
+// over a small associated territory sharing its code.
+const FEATURE_BY_CCN3 = new Map<string, Feature<Geometry>>();
+for (const f of countryFeatures.features) {
+  const id = String(f.id);
+  const existing = FEATURE_BY_CCN3.get(id);
+  if (!existing || totalArea(f.geometry) > totalArea(existing.geometry)) {
+    FEATURE_BY_CCN3.set(id, f);
+  }
+}
+
+function totalArea(geometry: Geometry): number {
+  if (geometry.type === 'MultiPolygon') {
+    return geometry.coordinates.reduce(
+      (sum, coordinates) => sum + geoArea({ type: 'Polygon', coordinates }),
+      0
+    );
+  }
+  if (geometry.type === 'Polygon') {
+    return geoArea(geometry);
+  }
+  return 0;
+}
 
 const CENTROID_BY_CCN3 = new Map<string, [number, number]>();
 
