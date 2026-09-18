@@ -35,12 +35,10 @@ export default function CountryCard({ country, game }: CountryCardProps) {
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="flex items-start gap-4 border-b border-slate-200 pb-4 dark:border-slate-700">
-        {show('flag') && (
-          <span
-            className={`fi fi-${country.cca2.toLowerCase()} h-10 w-14 shrink-0 rounded-md text-3xl shadow-sm`}
-            aria-label={`Flag of ${country.name}`}
-          />
-        )}
+        <span
+          className={`fi fi-${country.cca2.toLowerCase()} h-14 w-20 shrink-0 rounded-md text-3xl shadow-sm`}
+          aria-label={`Flag of ${country.name}`}
+        />
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-xl font-bold text-slate-900 dark:text-white">{country.name}</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -48,9 +46,7 @@ export default function CountryCard({ country, game }: CountryCardProps) {
             {country.subregion ? ` · ${country.subregion}` : ''}
           </p>
         </div>
-        {show('outline') && (
-          <CountryOutline ccn3={country.ccn3} className="h-16 w-16 shrink-0 text-emerald-600" />
-        )}
+        <CountryOutline ccn3={country.ccn3} className="h-24 w-24 shrink-0 text-emerald-600" />
       </div>
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 py-4 text-sm">
@@ -89,7 +85,7 @@ export default function CountryCard({ country, game }: CountryCardProps) {
       </dl>
 
       {moreFactsVisible && (
-        <details className="group border-t border-slate-200 pt-3 dark:border-slate-700">
+        <details open className="group border-t border-slate-200 pt-3 dark:border-slate-700">
           <summary className="cursor-pointer list-none text-sm font-semibold text-emerald-700 select-none dark:text-emerald-400">
             <span className="inline-flex items-center gap-1">
               More facts
