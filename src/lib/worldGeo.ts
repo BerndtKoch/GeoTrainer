@@ -2,7 +2,7 @@ import { feature } from 'topojson-client';
 import { geoArea, geoCentroid } from 'd3-geo';
 import type { Topology, GeometryCollection } from 'topojson-specification';
 import type { Feature, FeatureCollection, Geometry, Polygon, Position } from 'geojson';
-import worldTopology from 'world-atlas/countries-110m.json';
+import worldTopology from 'world-atlas/countries-50m.json';
 
 const topology = worldTopology as unknown as Topology;
 const countriesObject = topology.objects.countries as GeometryCollection;

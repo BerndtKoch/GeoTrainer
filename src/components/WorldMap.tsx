@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
+import { ComposableMap, Geographies, Geography, Graticule, Marker, Sphere, ZoomableGroup } from 'react-simple-maps';
 import { countryFeatures, getCountryCentroid } from '@/lib/worldGeo';
 import type { Country } from '@/lib/types';
 
@@ -9,6 +9,19 @@ import type { Country } from '@/lib/types';
 // actually rendered on screen (see react-simple-maps' ComposableMap defaults).
 const VIEWBOX_WIDTH = 800;
 const VIEWBOX_HEIGHT = 600;
+
+// Measured for real contrast rather than eyeballed: ocean/land is 7.9:1
+// (WCAG's non-text minimum is 3:1). See the change-list doc for the numbers.
+const COLORS = {
+  ocean: '#274b6d',
+  oceanStroke: '#1b3550',
+  graticule: '#345b7d',
+  land: '#eef0e9',
+  landNoData: '#c9d1c5',
+  countryStroke: '#274b6d',
+  selected: '#059669',
+  bordering: '#b45309',
+};
 
 interface WorldMapProps {
   countriesByCcn3: Map<string, Country>;
@@ -67,7 +80,7 @@ function CountryLabel({ ccn3, name, zoom, pxPerUnit, emphasize }: CountryLabelPr
           rx={height / 2}
           fill="#ffffff"
           fillOpacity={0.94}
-          stroke={emphasize ? '#059669' : '#64748b'}
+          stroke={emphasize ? COLORS.selected : COLORS.bordering}
           strokeWidth={fontSize * 0.08}
         />
         <text
@@ -123,7 +136,7 @@ export default function WorldMap({ countriesByCcn3, selected, onSelect }: WorldM
   );
 
   return (
-    <div ref={containerRef} className="h-full w-full bg-slate-100 dark:bg-slate-900">
+    <div ref={containerRef} className="h-full w-full" style={{ background: COLORS.ocean }}>
       <ComposableMap
         projection="geoEqualEarth"
         className="h-full w-full"
@@ -133,6 +146,8 @@ export default function WorldMap({ countriesByCcn3, selected, onSelect }: WorldM
           if (pos.coordinates) setCenter(pos.coordinates);
           if (pos.zoom) setZoom(pos.zoom);
         }}>
+          <Sphere id="geotrainer-sphere" fill={COLORS.ocean} stroke={COLORS.oceanStroke} strokeWidth={0.75} />
+          <Graticule stroke={COLORS.graticule} strokeWidth={0.35} />
           <Geographies geography={countryFeatures}>
             {({ geographies }) =>
               geographies.map((geo) => {
@@ -146,19 +161,20 @@ export default function WorldMap({ countriesByCcn3, selected, onSelect }: WorldM
                     onClick={() => country && onSelect(country)}
                     className={
                       country
-                        ? 'cursor-pointer stroke-white outline-none transition-colors duration-150 dark:stroke-slate-950'
-                        : 'stroke-white outline-none dark:stroke-slate-950'
+                        ? 'cursor-pointer outline-none transition-colors duration-150'
+                        : 'outline-none'
                     }
                     fill={
                       isSelected
-                        ? '#059669'
+                        ? COLORS.selected
                         : isBorder
-                          ? '#a7f3d0'
+                          ? COLORS.bordering
                           : country
-                            ? '#94a3b8'
-                            : '#e2e8f0'
+                            ? COLORS.land
+                            : COLORS.landNoData
                     }
-                    strokeWidth={0.5}
+                    stroke={COLORS.countryStroke}
+                    strokeWidth={0.4}
                   />
                 );
               })
