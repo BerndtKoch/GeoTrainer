@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Geist, Geist_Mono } from 'next/font/google';
 import AdSlot from '@/components/AdSlot';
+import GameContextNav from '@/components/GameContextNav';
 import 'flag-icons/css/flag-icons.min.css';
 import './globals.css';
 
@@ -49,28 +50,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="flex min-h-full flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50">
         <header className="border-b border-slate-200 dark:border-slate-800">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-            <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <Link href="/" className="flex shrink-0 items-center gap-2 font-bold tracking-tight">
               <span className="text-xl">🌍</span>
               <span>GeoTrainer</span>
             </Link>
-            <nav className="hidden gap-4 text-sm text-slate-500 sm:flex dark:text-slate-400">
-              <Link href="/worldle-practice" className="hover:text-emerald-600">
-                Worldle
-              </Link>
-              <Link href="/globle-practice" className="hover:text-emerald-600">
-                Globle
-              </Link>
-              <Link href="/flagle-practice" className="hover:text-emerald-600">
-                Flagle
-              </Link>
-              <Link href="/travle-practice" className="hover:text-emerald-600">
-                Travle
-              </Link>
-              <Link href="/capitalle-practice" className="hover:text-emerald-600">
-                Capitalle
-              </Link>
-            </nav>
+            <div className="min-w-0 sm:flex-1">
+              <Suspense fallback={<div className="h-8" />}>
+                <GameContextNav />
+              </Suspense>
+            </div>
           </div>
         </header>
         <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-4">{children}</main>

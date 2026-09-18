@@ -26,6 +26,10 @@ export interface GameDef {
   phase: 1 | 2;
 }
 
+// Ordered by a best-guess at relative popularity (no real traffic data yet —
+// revisit once the site has some). Drives the header's game-context switcher:
+// the games most likely to be someone's actual reason for visiting sit first,
+// so they need the least scrolling to reach on a phone-width screen.
 export const GAMES: GameDef[] = [
   {
     id: 'worldle',
@@ -37,18 +41,6 @@ export const GAMES: GameDef[] = [
     metaTitle: 'Worldle Practice Tool — Country Shape & Capital Lookup',
     metaDescription:
       'A free practice tool for Worldle players: browse country outlines, capitals, and languages on an interactive map. Not affiliated with Worldle.',
-    phase: 1,
-  },
-  {
-    id: 'globle',
-    name: 'Globle',
-    hubSlug: 'globle-practice',
-    tagline: 'Location, borders & continent lookup',
-    intro:
-      'Globle colors the globe by how close each guess is to the mystery country. This tool helps you study where a country actually sits, which countries border it, and which continent it belongs to.',
-    metaTitle: 'Globle Practice & Help — Country Location Lookup',
-    metaDescription:
-      'Practice tool and help for Globle players: look up any country’s location, borders, and continent on an interactive map. Independent, unofficial fan tool.',
     phase: 1,
   },
   {
@@ -64,16 +56,28 @@ export const GAMES: GameDef[] = [
     phase: 1,
   },
   {
-    id: 'capitalle',
-    name: 'Capitalle',
-    hubSlug: 'capitalle-practice',
-    tagline: 'Capital city & population lookup',
+    id: 'globle',
+    name: 'Globle',
+    hubSlug: 'globle-practice',
+    tagline: 'Location, borders & continent lookup',
     intro:
-      'Capitalle-style games quiz you on capital cities. Use this tool to look up any country’s capital alongside its population size and region for quick studying.',
-    metaTitle: 'Capitalle Practice Tool — World Capitals Lookup',
+      'Globle colors the globe by how close each guess is to the mystery country. This tool helps you study where a country actually sits, which countries border it, and which continent it belongs to.',
+    metaTitle: 'Globle Practice & Help — Country Location Lookup',
     metaDescription:
-      'Look up world capitals, population brackets, and regions in one fast reference built for Capitalle and capital-city guessing games.',
+      'Practice tool and help for Globle players: look up any country’s location, borders, and continent on an interactive map. Independent, unofficial fan tool.',
     phase: 1,
+  },
+  {
+    id: 'seterra',
+    name: 'Seterra',
+    hubSlug: 'seterra-practice',
+    tagline: 'Flags, capitals, rivers, mountains & provinces lookup',
+    intro:
+      'Seterra map quizzes cover flags, capitals, rivers, mountains, major cities, and states or provinces. This tool pulls all of those facts into one country-by-country lookup for study.',
+    metaTitle: 'Seterra Practice Tool — Map Quiz Lookup',
+    metaDescription:
+      'Study flags, capitals, rivers, mountains, major cities, and provinces by country — a fast reference built for Seterra map quizzes.',
+    phase: 2,
   },
   {
     id: 'travle',
@@ -85,6 +89,18 @@ export const GAMES: GameDef[] = [
     metaTitle: 'Travle Practice Tool — Bordering Countries Lookup',
     metaDescription:
       'Find any country’s bordering countries instantly and click through the chain. A fast, independent lookup tool for Travle players.',
+    phase: 1,
+  },
+  {
+    id: 'capitalle',
+    name: 'Capitalle',
+    hubSlug: 'capitalle-practice',
+    tagline: 'Capital city & population lookup',
+    intro:
+      'Capitalle-style games quiz you on capital cities. Use this tool to look up any country’s capital alongside its population size and region for quick studying.',
+    metaTitle: 'Capitalle Practice Tool — World Capitals Lookup',
+    metaDescription:
+      'Look up world capitals, population brackets, and regions in one fast reference built for Capitalle and capital-city guessing games.',
     phase: 1,
   },
   {
@@ -121,18 +137,6 @@ export const GAMES: GameDef[] = [
     metaTitle: 'Brandle Practice Tool — Brands by Country',
     metaDescription:
       'Look up notable brands and companies by country of origin — a practice reference for Brandle-style brand-guessing games.',
-    phase: 2,
-  },
-  {
-    id: 'seterra',
-    name: 'Seterra',
-    hubSlug: 'seterra-practice',
-    tagline: 'Flags, capitals, rivers, mountains & provinces lookup',
-    intro:
-      'Seterra map quizzes cover flags, capitals, rivers, mountains, major cities, and states or provinces. This tool pulls all of those facts into one country-by-country lookup for study.',
-    metaTitle: 'Seterra Practice Tool — Map Quiz Lookup',
-    metaDescription:
-      'Study flags, capitals, rivers, mountains, major cities, and provinces by country — a fast reference built for Seterra map quizzes.',
     phase: 2,
   },
   {
