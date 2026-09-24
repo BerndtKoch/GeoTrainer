@@ -1,7 +1,7 @@
 import { feature } from 'topojson-client';
-import { geoArea, geoCentroid } from 'd3-geo';
+import { geoArea, geoCentroid, geoDistance } from 'd3-geo';
 import type { Topology, GeometryCollection } from 'topojson-specification';
-import type { Feature, FeatureCollection, Geometry, Polygon, Position } from 'geojson';
+import type { Feature, FeatureCollection, Geometry, MultiPolygon, Polygon, Position } from 'geojson';
 import worldTopology from 'world-atlas/countries-50m.json';
 
 const topology = worldTopology as unknown as Topology;
@@ -37,49 +37,118 @@ function totalArea(geometry: Geometry): number {
   return 0;
 }
 
-const CENTROID_BY_CCN3 = new Map<string, [number, number]>();
+export interface PrimaryShape {
+  /** The largest landmass, plus any other part close enough to belong in
+   * the same silhouette — distant exclaves dropped. */
+  feature: Feature<Polygon | MultiPolygon>;
+  /** Centroid of the largest landmass, also useful as a projection rotation center. */
+  centroid: [number, number];
+}
+
+const PRIMARY_SHAPE_BY_CCN3 = new Map<string, PrimaryShape | null>();
 
 export function getCountryFeature(ccn3: string): Feature<Geometry> | undefined {
   return FEATURE_BY_CCN3.get(ccn3);
 }
 
+const EARTH_RADIUS_KM = 6371;
+// A distant exclave (French Guiana from France, Hawaii/Alaska from the
+// contiguous US, Réunion) sits thousands of km from the mainland. A close
+// archipelago's other islands (Hokkaido/Kyushu from Honshu, New Zealand's
+// North Island from the South, Corsica from mainland France) sit at most a
+// few hundred km away. This threshold sits comfortably between the two.
+const NEARBY_PART_KM = 1800;
+
 /**
- * [longitude, latitude] centroid of a country's shape, for map label placement.
+ * The country's largest landmass, plus any other part close enough to
+ * belong in the same silhouette, standing in for the whole country where a
+ * quick silhouette or a single label point is needed.
  *
- * For a multi-part country (islands, or a mainland + an overseas exclave
- * bundled into the same feature, e.g. France + French Guiana in this
- * dataset), the plain area-weighted centroid of the whole feature can land
- * far from any actual landmass — French Guiana alone pulls France's
- * centroid out into the Atlantic. Instead, label at the centroid of the
- * single largest ring, which is always a real point on real land.
+ * A plain area-weighted centroid (or projection fit) across every part of a
+ * multi-part country can be badly wrong in two different ways:
+ * - A mainland bundled with a small, far-flung exclave (e.g. France +
+ *   French Guiana, or the US + Hawaii/the Aleutians in this dataset) pulls
+ *   the centroid off into open ocean, and blows out any bounding-box-based
+ *   fit (the map label, the card's outline icon) across nearly the whole
+ *   globe instead of just the country's own extent.
+ * - A country whose mainland itself straddles the antimeridian (Russia,
+ *   whose Chukotka peninsula crosses 180°) breaks naive min/max-longitude
+ *   bounds even for that one landmass alone, with no exclave involved.
+ *
+ * Keeping only parts within NEARBY_PART_KM of the largest one fixes the
+ * first case while still keeping a close archipelago's other islands
+ * (Japan, New Zealand, Denmark) in the silhouette. The antimeridian case
+ * needs the consumer to also rotate its projection to center on this
+ * shape's own centroid longitude before measuring/fitting it — see
+ * CountryOutline, which does exactly that.
  */
-export function getCountryCentroid(ccn3: string): [number, number] | undefined {
-  if (CENTROID_BY_CCN3.has(ccn3)) return CENTROID_BY_CCN3.get(ccn3);
+export function getCountryPrimaryShape(ccn3: string): PrimaryShape | undefined {
+  if (PRIMARY_SHAPE_BY_CCN3.has(ccn3)) return PRIMARY_SHAPE_BY_CCN3.get(ccn3) ?? undefined;
+
   const feat = FEATURE_BY_CCN3.get(ccn3);
-  if (!feat) return undefined;
+  let result: PrimaryShape | null = null;
 
-  const centroid =
-    feat.geometry.type === 'MultiPolygon'
-      ? largestRingCentroid(feat.geometry.coordinates)
-      : geoCentroid(feat);
+  if (feat) {
+    const parts: Position[][][] =
+      feat.geometry.type === 'MultiPolygon'
+        ? feat.geometry.coordinates
+        : feat.geometry.type === 'Polygon'
+          ? [feat.geometry.coordinates]
+          : [];
 
-  if (Number.isNaN(centroid[0]) || Number.isNaN(centroid[1])) return undefined;
-  CENTROID_BY_CCN3.set(ccn3, centroid);
-  return centroid;
-}
+    const partFeatures = parts.map(
+      (coordinates): Feature<Polygon> => ({
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'Polygon', coordinates },
+      })
+    );
 
-function largestRingCentroid(parts: Position[][][]): [number, number] {
-  let bestArea = -Infinity;
-  let bestCentroid: [number, number] = [NaN, NaN];
-  for (const coordinates of parts) {
-    const polygon: Polygon = { type: 'Polygon', coordinates };
-    const area = geoArea(polygon);
-    if (area > bestArea) {
-      bestArea = area;
-      bestCentroid = geoCentroid(polygon);
+    let bestIndex = -1;
+    let bestArea = -Infinity;
+    partFeatures.forEach((f, i) => {
+      const area = geoArea(f.geometry);
+      if (area > bestArea) {
+        bestArea = area;
+        bestIndex = i;
+      }
+    });
+
+    if (bestIndex !== -1) {
+      const primaryCentroid = geoCentroid(partFeatures[bestIndex]);
+
+      if (!Number.isNaN(primaryCentroid[0]) && !Number.isNaN(primaryCentroid[1])) {
+        const keptCoordinates = partFeatures
+          .filter((f, i) => {
+            if (i === bestIndex) return true;
+            const centroid = geoCentroid(f);
+            if (Number.isNaN(centroid[0]) || Number.isNaN(centroid[1])) return false;
+            const distanceKm = geoDistance(centroid, primaryCentroid) * EARTH_RADIUS_KM;
+            return distanceKm <= NEARBY_PART_KM;
+          })
+          .map((f) => f.geometry.coordinates);
+
+        const combinedFeature: Feature<Polygon | MultiPolygon> =
+          keptCoordinates.length === 1
+            ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: keptCoordinates[0] } }
+            : { type: 'Feature', properties: {}, geometry: { type: 'MultiPolygon', coordinates: keptCoordinates } };
+
+        result = { feature: combinedFeature, centroid: primaryCentroid };
+      }
     }
   }
-  return bestCentroid;
+
+  PRIMARY_SHAPE_BY_CCN3.set(ccn3, result);
+  return result ?? undefined;
+}
+
+/**
+ * [longitude, latitude] centroid of a country's largest landmass, for map
+ * label placement (see getCountryPrimaryShape for why "largest landmass"
+ * rather than the whole, possibly multi-part, country).
+ */
+export function getCountryCentroid(ccn3: string): [number, number] | undefined {
+  return getCountryPrimaryShape(ccn3)?.centroid;
 }
 
 export { worldTopology, countryFeatures };
