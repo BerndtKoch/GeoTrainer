@@ -36,7 +36,7 @@ export default function CountryCard({ country, game }: CountryCardProps) {
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="flex items-start gap-4 border-b border-slate-200 pb-4 dark:border-slate-700">
         <span
-          className={`fi fi-${country.cca2.toLowerCase()} h-14 w-20 shrink-0 rounded-md text-3xl shadow-sm`}
+          className={`fi fi-${country.cca2.toLowerCase()} h-20 w-28 shrink-0 rounded-md text-3xl shadow-sm`}
           aria-label={`Flag of ${country.name}`}
         />
         <div className="min-w-0 flex-1">
