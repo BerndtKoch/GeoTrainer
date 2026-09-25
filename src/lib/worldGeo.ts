@@ -1,5 +1,5 @@
 import { feature } from 'topojson-client';
-import { geoArea, geoCentroid, geoDistance } from 'd3-geo';
+import { geoArea, geoCentroid, geoDistance, geoEqualEarth } from 'd3-geo';
 import type { Topology, GeometryCollection } from 'topojson-specification';
 import type { Feature, FeatureCollection, Geometry, MultiPolygon, Polygon, Position } from 'geojson';
 import worldTopology from 'world-atlas/countries-50m.json';
@@ -149,6 +149,77 @@ export function getCountryPrimaryShape(ccn3: string): PrimaryShape | undefined {
  */
 export function getCountryCentroid(ccn3: string): [number, number] | undefined {
   return getCountryPrimaryShape(ccn3)?.centroid;
+}
+
+// ComposableMap's own fixed internal viewBox (see WorldMap.tsx) — every
+// consumer that needs to measure real-world geography against the map's own
+// coordinate space (region framing, small-country label overflow) projects
+// through a projection built with these same dimensions, so the numbers are
+// directly comparable to what's actually on screen.
+export const WORLD_VIEWBOX_WIDTH = 800;
+export const WORLD_VIEWBOX_HEIGHT = 600;
+
+// The same, un-rotated, un-zoomed projection the map itself uses at zoom 1
+// (react-simple-maps sets up geoEqualEarth with only a translate — no
+// custom scale — when none is given in projectionConfig). Consumers that
+// need to reason about screen position/size at the base zoom level share
+// this single instance instead of each re-deriving react-simple-maps'
+// default.
+const baseProjection = geoEqualEarth().translate([WORLD_VIEWBOX_WIDTH / 2, WORLD_VIEWBOX_HEIGHT / 2]);
+
+export function projectBase(point: [number, number]): [number, number] | null {
+  return baseProjection(point) as [number, number] | null;
+}
+
+interface Footprint {
+  /** Width/height of the country's largest landmass in viewBox units, at zoom 1. */
+  width: number;
+  height: number;
+}
+
+const FOOTPRINT_BY_CCN3 = new Map<string, Footprint | null>();
+
+/**
+ * How big a country's largest landmass actually renders on the map at
+ * zoom 1 — used to tell whether a name label would be bigger than the
+ * shape it's labeling (see WorldMap's CountryLabel, which switches to a
+ * dot + leader line once the label would paint over the shape entirely).
+ */
+export function getCountryFootprint(ccn3: string): Footprint | undefined {
+  if (FOOTPRINT_BY_CCN3.has(ccn3)) return FOOTPRINT_BY_CCN3.get(ccn3) ?? undefined;
+
+  const primary = getCountryPrimaryShape(ccn3);
+  let result: Footprint | null = null;
+
+  if (primary) {
+    const rings: Position[][] =
+      primary.feature.geometry.type === 'Polygon'
+        ? primary.feature.geometry.coordinates
+        : primary.feature.geometry.coordinates.flat();
+
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const ring of rings) {
+      for (const point of ring) {
+        const projected = baseProjection(point as [number, number]);
+        if (!projected) continue;
+        const [x, y] = projected;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+
+    if (maxX > minX && maxY > minY) {
+      result = { width: maxX - minX, height: maxY - minY };
+    }
+  }
+
+  FOOTPRINT_BY_CCN3.set(ccn3, result);
+  return result ?? undefined;
 }
 
 export { worldTopology, countryFeatures };
