@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { Suspense, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Geist, Geist_Mono } from 'next/font/google';
 import AdSlot from '@/components/AdSlot';
-import GameContextNav from '@/components/GameContextNav';
+import TrainingNav from '@/components/TrainingNav';
 import 'flag-icons/css/flag-icons.min.css';
 import './globals.css';
 
@@ -56,9 +56,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <span>GeoTrainer</span>
             </Link>
             <div className="min-w-0 sm:flex-1">
-              <Suspense fallback={<div className="h-8" />}>
-                <GameContextNav />
-              </Suspense>
+              <TrainingNav />
             </div>
           </div>
         </header>

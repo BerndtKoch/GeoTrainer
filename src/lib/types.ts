@@ -41,22 +41,3 @@ export interface Country {
   landmarks: string[];
   brands: string[];
 }
-
-export type FieldKey =
-  | 'flag'
-  | 'capital'
-  | 'region'
-  | 'population'
-  | 'borders'
-  | 'outline'
-  | 'languages'
-  | 'currencies'
-  | 'area'
-  | 'climate'
-  | 'rivers'
-  | 'mountains'
-  | 'majorCities'
-  | 'provinces'
-  | 'landmarks'
-  | 'brands'
-  | 'food';
