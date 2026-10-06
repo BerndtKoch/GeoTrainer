@@ -3,6 +3,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { Country } from '@/lib/types';
 import { getQuestionStatsByCcn3, type QuestionStats, type TrainingCategory } from '@/lib/trainingStorage';
+import type { Scope } from '@/lib/training';
+import RegionPicker from './RegionPicker';
 
 const MAX_COLUMNS = 20;
 
@@ -15,6 +17,7 @@ interface HistoryGridProps {
 
 export default function HistoryGrid({ countries, category, direction, renderAnswer }: HistoryGridProps) {
   const [statsByCcn3, setStatsByCcn3] = useState<Map<string, QuestionStats> | null>(null);
+  const [region, setRegion] = useState<Scope>('all');
 
   useEffect(() => {
     // Deferred rather than called synchronously in the effect body — this is
@@ -25,25 +28,31 @@ export default function HistoryGrid({ countries, category, direction, renderAnsw
 
   if (!statsByCcn3) return null;
 
-  const tested = countries
+  const scoped = region === 'all' ? countries : countries.filter((c) => c.region === region);
+
+  const tested = scoped
     .filter((c) => statsByCcn3.has(c.ccn3))
     .map((c) => ({ country: c, stats: statsByCcn3.get(c.ccn3)! }))
     .sort((a, b) => (a.stats.percentCorrect ?? 0) - (b.stats.percentCorrect ?? 0));
 
-  const untested = countries.filter((c) => !statsByCcn3.has(c.ccn3)).sort((a, b) => a.name.localeCompare(b.name));
+  const untested = scoped.filter((c) => !statsByCcn3.has(c.ccn3)).sort((a, b) => a.name.localeCompare(b.name));
 
   const maxVisibleColumns = Math.min(MAX_COLUMNS, Math.max(0, ...tested.map((t) => t.stats.attempts.length)));
 
   if (tested.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400 dark:border-slate-600">
-        No quiz history yet for this tab — take a quiz to start building your weak-spot grid.
-      </p>
+      <div className="flex flex-col gap-6">
+        <RegionPicker value={region} onChange={setRegion} />
+        <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400 dark:border-slate-600">
+          No quiz history yet for this tab and region — take a quiz to start building your weak-spot grid.
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
+      <RegionPicker value={region} onChange={setRegion} />
       <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
         <table className="w-full border-collapse text-sm">
           <thead>

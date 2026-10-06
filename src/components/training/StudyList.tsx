@@ -2,8 +2,9 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import type { Country } from '@/lib/types';
-import { groupByRegion } from '@/lib/training';
+import { groupByRegion, type Scope } from '@/lib/training';
 import { getMnemonic, setMnemonic, type TrainingCategory } from '@/lib/trainingStorage';
+import RegionPicker from './RegionPicker';
 
 interface StudyListProps {
   countries: Country[];
@@ -13,6 +14,7 @@ interface StudyListProps {
 
 export default function StudyList({ countries, category, renderAnswer }: StudyListProps) {
   const [mnemonics, setMnemonics] = useState<Record<string, string>>({});
+  const [region, setRegion] = useState<Scope>('all');
 
   // Loaded after mount (not during the initial render) so the server-rendered
   // shell and the client's first paint match — localStorage doesn't exist on
@@ -37,10 +39,12 @@ export default function StudyList({ countries, category, renderAnswer }: StudyLi
     setMnemonic(category, ccn3, text);
   }
 
-  const grouped = groupByRegion(countries);
+  const filtered = region === 'all' ? countries : countries.filter((c) => c.region === region);
+  const grouped = groupByRegion(filtered);
 
   return (
     <div className="flex flex-col gap-6">
+      <RegionPicker value={region} onChange={setRegion} />
       {grouped.map((group) => (
         <div key={group.region}>
           <h3 className="mb-2 text-sm font-semibold tracking-wide text-slate-400 uppercase">{group.region}</h3>
