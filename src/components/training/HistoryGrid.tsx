@@ -72,14 +72,14 @@ export default function HistoryGrid({ countries, category, direction, renderAnsw
                   key={country.ccn3}
                   className={rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60'}
                 >
-                  <td className="sticky left-0 bg-inherit px-3 py-2 font-medium whitespace-nowrap text-slate-800 dark:text-slate-100">
+                  <td className="sticky left-0 bg-inherit px-3 py-2 align-middle font-medium whitespace-nowrap text-slate-800 dark:text-slate-100">
                     {country.name}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-slate-600 dark:text-slate-300">
+                  <td className="px-3 py-2 align-middle whitespace-nowrap text-slate-600 dark:text-slate-300">
                     {renderAnswer(country)}
                   </td>
                   <td
-                    className={`px-3 py-2 text-right font-semibold whitespace-nowrap ${
+                    className={`px-3 py-2 text-right align-middle font-semibold whitespace-nowrap ${
                       (stats.percentCorrect ?? 0) < 50
                         ? 'text-rose-600 dark:text-rose-400'
                         : (stats.percentCorrect ?? 0) < 80
@@ -93,7 +93,7 @@ export default function HistoryGrid({ countries, category, direction, renderAnsw
                     const padding = maxVisibleColumns - visible.length;
                     const value = i < padding ? null : visible[i - padding];
                     return (
-                      <td key={i} className="px-1.5 py-2 text-center">
+                      <td key={i} className="px-1.5 py-2 text-center align-middle">
                         {value === null || value === undefined ? (
                           <span className="text-slate-200 dark:text-slate-700">&middot;</span>
                         ) : value ? (

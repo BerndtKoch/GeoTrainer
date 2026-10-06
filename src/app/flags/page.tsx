@@ -35,7 +35,12 @@ export default function FlagsPage() {
         <StudyList
           countries={COUNTRIES}
           category="flags"
-          renderAnswer={(c) => <span className={`fi fi-${c.cca2.toLowerCase()} rounded-sm text-lg`} aria-hidden />}
+          renderAnswer={(c) => (
+            <span
+              className={`fi fi-${c.cca2.toLowerCase()} !h-[54px] !w-[72px] rounded-sm`}
+              aria-hidden
+            />
+          )}
         />
       )}
 
@@ -64,7 +69,12 @@ export default function FlagsPage() {
           countries={COUNTRIES}
           category="flags"
           direction={null}
-          renderAnswer={(c) => <span className={`fi fi-${c.cca2.toLowerCase()} rounded-sm text-base`} aria-hidden />}
+          renderAnswer={(c) => (
+            <span
+              className={`fi fi-${c.cca2.toLowerCase()} !h-12 !w-16 rounded-sm`}
+              aria-hidden
+            />
+          )}
         />
       )}
     </div>
