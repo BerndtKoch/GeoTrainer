@@ -44,8 +44,14 @@ export default function FlagsPage() {
           category="flags"
           countries={COUNTRIES}
           renderPrompt={(q) => (
+            // Sizing uses the `!` (important) modifier because flag-icons'
+            // own stylesheet sets `.fi { width: 1.333333em }` — a plain
+            // Tailwind width utility has the same specificity and silently
+            // loses that tie, which is why this flag (and the one on the
+            // country card) rendered far narrower than intended despite
+            // having an explicit w-* class already.
             <span
-              className={`fi fi-${q.answerCountry.cca2.toLowerCase()} h-20 w-32 rounded-md text-6xl shadow-sm`}
+              className={`fi fi-${q.answerCountry.cca2.toLowerCase()} !h-32 !w-52 rounded-md shadow-sm sm:!h-48 sm:!w-80 lg:!h-80 lg:!w-[32rem]`}
               aria-label={`Flag of ${q.answerCountry.name}`}
             />
           )}

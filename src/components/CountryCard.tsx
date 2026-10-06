@@ -14,8 +14,13 @@ export default function CountryCard({ country }: CountryCardProps) {
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="flex items-start gap-4 border-b border-slate-200 pb-4 dark:border-slate-700">
+        {/* `!` (important) modifier: flag-icons' own stylesheet sets
+            `.fi { width: 1.333333em }`, which has the same specificity as a
+            plain Tailwind width utility and silently wins the tie — this
+            flag was rendering far narrower than w-28 intended until this
+            was added. */}
         <span
-          className={`fi fi-${country.cca2.toLowerCase()} h-20 w-28 shrink-0 rounded-md text-3xl shadow-sm`}
+          className={`fi fi-${country.cca2.toLowerCase()} !h-20 !w-28 shrink-0 rounded-md shadow-sm`}
           aria-label={`Flag of ${country.name}`}
         />
         <div className="min-w-0 flex-1">
