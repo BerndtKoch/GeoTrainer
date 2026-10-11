@@ -54,13 +54,14 @@ export default function CategoryQuiz({ category, countries, directions, renderPr
       direction={settings.direction}
       renderPrompt={(q) => renderPrompt(q, settings.direction)}
       renderOption={(c) => renderOption(c, settings.direction)}
-      onAnswer={(q, _chosen, correct) => {
+      onAnswer={(q, chosen, correct) => {
         if (!testId) return;
         recordAttempt({
           category,
           direction: settings.direction,
           ccn3: q.ccn3,
           correct,
+          chosenCcn3: chosen.ccn3,
           testId,
         });
       }}

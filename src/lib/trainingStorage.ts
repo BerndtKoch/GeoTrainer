@@ -10,6 +10,11 @@ export interface AttemptEvent {
   direction: string | null;
   ccn3: string;
   correct: boolean;
+  /** The country whose answer-representation (name/capital/flag/outline,
+   * depending on category+direction) was actually picked — lets the history
+   * grid and results review show what you got wrong, not just that you did.
+   * Equal to `ccn3` itself when correct. */
+  chosenCcn3: string;
   timestamp: number;
   testId: string;
 }
@@ -102,10 +107,15 @@ export function setMnemonic(category: TrainingCategory, ccn3: string, text: stri
   writeJSON(MNEMONICS_KEY, all);
 }
 
+export interface AttemptRecord {
+  correct: boolean;
+  chosenCcn3: string;
+}
+
 export interface QuestionStats {
   ccn3: string;
-  /** Chronological order, oldest first — true means that attempt was correct. */
-  attempts: boolean[];
+  /** Chronological order, oldest first. */
+  attempts: AttemptRecord[];
   correctCount: number;
   totalCount: number;
   /** Null when the question has never been asked. */
@@ -134,7 +144,7 @@ export function getQuestionStatsByCcn3(
       stats = { ccn3: e.ccn3, attempts: [], correctCount: 0, totalCount: 0, percentCorrect: null, lastTimestamp: 0 };
       map.set(e.ccn3, stats);
     }
-    stats.attempts.push(e.correct);
+    stats.attempts.push({ correct: e.correct, chosenCcn3: e.chosenCcn3 });
     stats.totalCount += 1;
     if (e.correct) stats.correctCount += 1;
     stats.lastTimestamp = e.timestamp;

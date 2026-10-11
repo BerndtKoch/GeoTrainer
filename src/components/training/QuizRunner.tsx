@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
 import type { Country } from '@/lib/types';
 import type { QuizQuestion } from '@/lib/training';
 import { getQuestionStatsByCcn3, type TrainingCategory } from '@/lib/trainingStorage';
+import AttemptDetail from './AttemptDetail';
 
 const REVIEW_ATTEMPTS = 5;
 
@@ -34,6 +35,19 @@ export default function QuizRunner({
   const [chosenCcn3, setChosenCcn3] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  function toggleExpanded(ccn3: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(ccn3)) {
+        next.delete(ccn3);
+      } else {
+        next.add(ccn3);
+      }
+      return next;
+    });
+  }
 
   if (questions.length === 0) {
     return (
@@ -54,10 +68,10 @@ export default function QuizRunner({
     const review = questions
       .map((q) => {
         const recent = (statsByCcn3.get(q.ccn3)?.attempts ?? []).slice(-REVIEW_ATTEMPTS);
-        const correctOfRecent = recent.filter(Boolean).length;
+        const correctOfRecent = recent.filter((a) => a.correct).length;
         return {
           ccn3: q.ccn3,
-          name: q.answerCountry.name,
+          answerCountry: q.answerCountry,
           recent,
           percent: recent.length ? Math.round((correctOfRecent / recent.length) * 100) : null,
         };
@@ -108,32 +122,48 @@ export default function QuizRunner({
             <tbody>
               {review.map((row, rowIndex) => {
                 const padding = REVIEW_ATTEMPTS - row.recent.length;
+                const isOpen = expanded.has(row.ccn3);
+                const stripe = rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60';
                 return (
-                  <tr
-                    key={row.ccn3}
-                    className={rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60'}
-                  >
-                    <td className="px-3 py-2 align-middle font-medium whitespace-nowrap text-slate-800 dark:text-slate-100">
-                      {row.name}
-                    </td>
-                    {Array.from({ length: REVIEW_ATTEMPTS }, (_, i) => {
-                      const value = i < padding ? null : row.recent[i - padding];
-                      return (
-                        <td key={i} className="px-1.5 py-2 text-center align-middle">
-                          {value === null || value === undefined ? (
-                            <span className="text-slate-200 dark:text-slate-700">&middot;</span>
-                          ) : value ? (
-                            <span className="font-semibold text-emerald-500">&#10003;</span>
-                          ) : (
-                            <span className="font-semibold text-rose-500">&#10007;</span>
-                          )}
+                  <Fragment key={row.ccn3}>
+                    <tr
+                      onClick={() => toggleExpanded(row.ccn3)}
+                      className={`cursor-pointer ${stripe}`}
+                    >
+                      <td className="px-3 py-2 align-middle font-medium whitespace-nowrap text-slate-800 dark:text-slate-100">
+                        <span className="mr-1.5 inline-block w-3 text-slate-400">{isOpen ? '▾' : '▸'}</span>
+                        {row.answerCountry.name}
+                      </td>
+                      {Array.from({ length: REVIEW_ATTEMPTS }, (_, i) => {
+                        const value = i < padding ? null : row.recent[i - padding];
+                        return (
+                          <td key={i} className="px-1.5 py-2 text-center align-middle">
+                            {value === null || value === undefined ? (
+                              <span className="text-slate-200 dark:text-slate-700">&middot;</span>
+                            ) : value.correct ? (
+                              <span className="font-semibold text-emerald-500">&#10003;</span>
+                            ) : (
+                              <span className="font-semibold text-rose-500">&#10007;</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td className="px-3 py-2 text-right align-middle font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300">
+                        {row.percent}%
+                      </td>
+                    </tr>
+                    {isOpen && (
+                      <tr className={stripe}>
+                        <td className="px-3 pb-3 align-middle" colSpan={REVIEW_ATTEMPTS + 2}>
+                          <AttemptDetail
+                            attempts={row.recent}
+                            correctCountry={row.answerCountry}
+                            renderAnswer={renderOption}
+                          />
                         </td>
-                      );
-                    })}
-                    <td className="px-3 py-2 text-right align-middle font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300">
-                      {row.percent}%
-                    </td>
-                  </tr>
+                      </tr>
+                    )}
+                  </Fragment>
                 );
               })}
             </tbody>
