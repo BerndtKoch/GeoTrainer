@@ -104,6 +104,8 @@ export default function QuizRunner({
           </div>
         </div>
 
+        <p className="text-xs text-slate-400">Click a row to see what you picked on each past attempt.</p>
+
         <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
           <table className="w-full text-sm">
             <thead>

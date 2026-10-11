@@ -68,6 +68,7 @@ export default function HistoryGrid({ countries, category, direction, renderAnsw
   return (
     <div className="flex flex-col gap-6">
       <RegionPicker value={region} onChange={setRegion} />
+      <p className="text-xs text-slate-400">Click a row to see what you picked on each past attempt.</p>
       <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
         <table className="w-full border-collapse text-sm">
           <thead>
