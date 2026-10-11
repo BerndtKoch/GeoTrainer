@@ -67,28 +67,64 @@ export function newTestId(): string {
   return newId();
 }
 
-export function recordAttempt(input: Omit<AttemptEvent, 'id' | 'timestamp'>): void {
+/**
+ * Flags and Shapes recorded attempts/test runs with direction: null before
+ * they had separate directions; now that both tabs always pick a real
+ * direction id, those old null-direction records no longer match either tab
+ * and would otherwise sit invisible in storage forever. Folding them into
+ * each category's first direction (the one `historyDirection` defaults to)
+ * is a one-time, self-correcting fixup: once migrated, a record's direction
+ * is no longer null, so it's never re-migrated on a later read.
+ */
+const LEGACY_NULL_DIRECTION_DEFAULT: Partial<Record<TrainingCategory, string>> = {
+  flags: 'flag-to-country',
+  shapes: 'shape-to-country',
+};
+
+function migrateLegacyNullDirection<T extends { category: TrainingCategory; direction: string | null }>(
+  records: T[]
+): boolean {
+  let migrated = false;
+  for (const r of records) {
+    const fallback = LEGACY_NULL_DIRECTION_DEFAULT[r.category];
+    if (fallback && r.direction === null) {
+      r.direction = fallback;
+      migrated = true;
+    }
+  }
+  return migrated;
+}
+
+function readAttemptsMigrated(): AttemptEvent[] {
   const all = readJSON<AttemptEvent[]>(ATTEMPTS_KEY, []);
+  if (migrateLegacyNullDirection(all)) writeJSON(ATTEMPTS_KEY, all);
+  return all;
+}
+
+function readTestRunsMigrated(): TestRunSummary[] {
+  const all = readJSON<TestRunSummary[]>(TEST_RUNS_KEY, []);
+  if (migrateLegacyNullDirection(all)) writeJSON(TEST_RUNS_KEY, all);
+  return all;
+}
+
+export function recordAttempt(input: Omit<AttemptEvent, 'id' | 'timestamp'>): void {
+  const all = readAttemptsMigrated();
   all.push({ ...input, id: newId(), timestamp: Date.now() });
   writeJSON(ATTEMPTS_KEY, all);
 }
 
 export function recordTestRun(input: Omit<TestRunSummary, 'id' | 'completedAt'>): void {
-  const all = readJSON<TestRunSummary[]>(TEST_RUNS_KEY, []);
+  const all = readTestRunsMigrated();
   all.push({ ...input, id: newId(), completedAt: Date.now() });
   writeJSON(TEST_RUNS_KEY, all);
 }
 
 export function getAttempts(category: TrainingCategory, direction: string | null = null): AttemptEvent[] {
-  return readJSON<AttemptEvent[]>(ATTEMPTS_KEY, []).filter(
-    (a) => a.category === category && a.direction === direction
-  );
+  return readAttemptsMigrated().filter((a) => a.category === category && a.direction === direction);
 }
 
 export function getTestRuns(category: TrainingCategory, direction: string | null = null): TestRunSummary[] {
-  return readJSON<TestRunSummary[]>(TEST_RUNS_KEY, []).filter(
-    (r) => r.category === category && r.direction === direction
-  );
+  return readTestRunsMigrated().filter((r) => r.category === category && r.direction === direction);
 }
 
 export function getMnemonic(category: TrainingCategory, ccn3: string): string {
