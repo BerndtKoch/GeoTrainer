@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { DIFFICULTIES, SCOPES, STRATEGIES, type Scope } from '@/lib/training';
-import type { Difficulty, Strategy } from '@/lib/trainingStorage';
+import { SCOPES, STRATEGIES, type Scope } from '@/lib/training';
+import type { Strategy } from '@/lib/trainingStorage';
 
 export interface QuizSettings {
   direction: string | null;
   scope: Scope;
   strategy: Strategy;
-  difficulty: Difficulty;
 }
 
 interface QuizSetupPanelProps {
@@ -23,7 +22,6 @@ export default function QuizSetupPanel({ directions, initialSettings, onStart }:
   const [direction, setDirection] = useState(initialSettings?.direction ?? directions?.[0]?.id ?? null);
   const [scope, setScope] = useState<Scope>(initialSettings?.scope ?? 'all');
   const [strategy, setStrategy] = useState<Strategy>(initialSettings?.strategy ?? 'cycle');
-  const [difficulty, setDifficulty] = useState<Difficulty>(initialSettings?.difficulty ?? 'medium');
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
@@ -50,13 +48,9 @@ export default function QuizSetupPanel({ directions, initialSettings, onStart }:
         </div>
       </Field>
 
-      <Field label="Difficulty">
-        <SegmentedControl options={DIFFICULTIES} value={difficulty} onChange={(v) => setDifficulty(v as Difficulty)} />
-      </Field>
-
       <button
         type="button"
-        onClick={() => onStart({ direction, scope, strategy, difficulty })}
+        onClick={() => onStart({ direction, scope, strategy })}
         className="mt-1 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
       >
         Start quiz

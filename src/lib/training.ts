@@ -1,6 +1,6 @@
 import { COUNTRIES } from './countries';
 import type { Country } from './types';
-import { getQuestionStatsByCcn3, type Difficulty, type Strategy, type TrainingCategory } from './trainingStorage';
+import { getQuestionStatsByCcn3, type Strategy, type TrainingCategory } from './trainingStorage';
 
 export type Scope = 'all' | 'Africa' | 'Asia' | 'Europe' | 'Americas' | 'Oceania';
 
@@ -11,12 +11,6 @@ export const SCOPES: { id: Scope; label: string }[] = [
   { id: 'Europe', label: 'Europe' },
   { id: 'Americas', label: 'Americas' },
   { id: 'Oceania', label: 'Oceania' },
-];
-
-export const DIFFICULTIES: { id: Difficulty; label: string }[] = [
-  { id: 'easy', label: 'Easy' },
-  { id: 'medium', label: 'Medium' },
-  { id: 'hard', label: 'Hard' },
 ];
 
 export const STRATEGIES: { id: Strategy; label: string; description: string }[] = [
@@ -35,19 +29,8 @@ export const STRATEGIES: { id: Strategy; label: string; description: string }[] 
 
 const QUESTION_COUNT = 20;
 
-/**
- * "Prominence" difficulty, per the earlier decision: reuses the population
- * bracket already computed for every country rather than curating a new
- * obscurity scale. large -> easy, medium -> medium, small -> hard.
- */
-export function difficultyOf(country: Country): Difficulty {
-  if (country.populationBracket === 'large') return 'easy';
-  if (country.populationBracket === 'small') return 'hard';
-  return 'medium';
-}
-
-export function eligibleForScope(countries: Country[], scope: Scope, difficulty: Difficulty): Country[] {
-  return countries.filter((c) => (scope === 'all' || c.region === scope) && difficultyOf(c) === difficulty);
+export function eligibleForScope(countries: Country[], scope: Scope): Country[] {
+  return countries.filter((c) => scope === 'all' || c.region === scope);
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -61,10 +44,9 @@ function shuffle<T>(items: T[]): T[] {
 
 /**
  * Picks which countries a new test will ask about, honoring the chosen
- * strategy. The pool passed in is already scope+difficulty filtered; the
- * quiz is capped to the pool's size rather than padding with repeats when
- * a narrow combination (e.g. Oceania + Easy, which today has zero eligible
- * countries) doesn't have 20 to offer.
+ * strategy. The pool passed in is already scope-filtered; the quiz is
+ * capped to the pool's size rather than padding with repeats when a narrow
+ * scope (e.g. Oceania) doesn't have 20 countries to offer.
  */
 export function pickQuestionCountries(
   pool: Country[],
@@ -99,7 +81,6 @@ export function pickQuestionCountries(
 
 export interface QuizQuestion {
   ccn3: string;
-  difficulty: Difficulty;
   answerCountry: Country;
   /** 4 countries including answerCountry, in shuffled display order. */
   optionCountries: Country[];
@@ -107,10 +88,9 @@ export interface QuizQuestion {
 
 /**
  * Wrong-answer options are drawn from the full country list (not just the
- * scope/difficulty-filtered pool, which may be too small to supply 3
- * distractors on its own), preferring the answer's own region first — same
- * region is more confusable and more realistic training value, per the
- * earlier decision.
+ * scope-filtered pool, which may be too small to supply 3 distractors on
+ * its own), preferring the answer's own region first — same region is more
+ * confusable and more realistic training value, per the earlier decision.
  */
 function pickDistractors(answer: Country, count: number): Country[] {
   const sameRegion = shuffle(COUNTRIES.filter((c) => c.ccn3 !== answer.ccn3 && c.region === answer.region));
@@ -121,7 +101,6 @@ function pickDistractors(answer: Country, count: number): Country[] {
 export function buildQuizQuestions(selected: Country[]): QuizQuestion[] {
   return selected.map((answerCountry) => ({
     ccn3: answerCountry.ccn3,
-    difficulty: difficultyOf(answerCountry),
     answerCountry,
     optionCountries: shuffle([answerCountry, ...pickDistractors(answerCountry, 3)]),
   }));

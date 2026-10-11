@@ -26,7 +26,7 @@ export default function CategoryQuiz({ category, countries, directions, renderPr
   const [testId, setTestId] = useState<string | null>(null);
 
   function start(next: QuizSettings) {
-    const pool = eligibleForScope(countries, next.scope, next.difficulty);
+    const pool = eligibleForScope(countries, next.scope);
     const selected = pickQuestionCountries(pool, next.strategy, category, next.direction);
     setSettings(next);
     setQuestions(buildQuizQuestions(selected));
@@ -61,7 +61,6 @@ export default function CategoryQuiz({ category, countries, directions, renderPr
           direction: settings.direction,
           ccn3: q.ccn3,
           correct,
-          difficulty: q.difficulty,
           testId,
         });
       }}
@@ -71,7 +70,6 @@ export default function CategoryQuiz({ category, countries, directions, renderPr
           direction: settings.direction,
           scope: settings.scope,
           strategy: settings.strategy,
-          difficulty: settings.difficulty,
           correct,
           total,
         });

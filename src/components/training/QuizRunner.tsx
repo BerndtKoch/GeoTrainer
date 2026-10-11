@@ -5,12 +5,6 @@ import type { Country } from '@/lib/types';
 import type { QuizQuestion } from '@/lib/training';
 import { getQuestionStatsByCcn3, type TrainingCategory } from '@/lib/trainingStorage';
 
-const DIFFICULTY_STYLE: Record<QuizQuestion['difficulty'], string> = {
-  easy: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-  medium: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  hard: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-};
-
 const REVIEW_ATTEMPTS = 5;
 
 interface QuizRunnerProps {
@@ -44,8 +38,7 @@ export default function QuizRunner({
   if (questions.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400 dark:border-slate-600">
-        No eligible countries for that combination of scope and difficulty. Try a broader scope or a
-        different tier.
+        No eligible countries for that scope.
       </div>
     );
   }
@@ -174,13 +167,8 @@ export default function QuizRunner({
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-slate-500 dark:text-slate-400">
-          Question {index + 1} of {questions.length}
-        </span>
-        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${DIFFICULTY_STYLE[question.difficulty]}`}>
-          {question.difficulty}
-        </span>
+      <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        Question {index + 1} of {questions.length}
       </div>
 
       <div className="flex min-h-[120px] items-center justify-center py-2">{renderPrompt(question)}</div>

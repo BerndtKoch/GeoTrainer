@@ -1,7 +1,6 @@
 'use client';
 
 export type TrainingCategory = 'capitals' | 'flags' | 'shapes';
-export type Difficulty = 'easy' | 'medium' | 'hard';
 export type Strategy = 'cycle' | 'random' | 'weak';
 
 export interface AttemptEvent {
@@ -11,7 +10,6 @@ export interface AttemptEvent {
   direction: string | null;
   ccn3: string;
   correct: boolean;
-  difficulty: Difficulty;
   timestamp: number;
   testId: string;
 }
@@ -22,7 +20,6 @@ export interface TestRunSummary {
   direction: string | null;
   scope: string;
   strategy: Strategy;
-  difficulty: Difficulty;
   correct: number;
   total: number;
   completedAt: number;
