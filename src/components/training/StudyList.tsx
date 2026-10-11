@@ -66,9 +66,10 @@ export default function StudyList({ countries, category, renderAnswer }: StudyLi
                     i % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                     <span className="font-medium text-slate-800 dark:text-slate-100">{country.name}</span>
-                    {renderAnswer(country)}
+                    <div className="flex justify-center">{renderAnswer(country)}</div>
+                    <div aria-hidden />
                   </div>
                   <div className="flex items-center gap-2">
                     <input

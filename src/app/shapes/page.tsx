@@ -63,7 +63,7 @@ export default function ShapesPage() {
           }
           renderOption={(c, direction) =>
             direction === 'country-to-shape' ? (
-              <CountryOutline ccn3={c.ccn3} className="h-14 w-14 text-emerald-600" />
+              <CountryOutline ccn3={c.ccn3} className="h-24 w-24 text-emerald-600 sm:h-28 sm:w-28" />
             ) : (
               c.name
             )

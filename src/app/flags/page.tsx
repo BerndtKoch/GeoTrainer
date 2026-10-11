@@ -71,7 +71,11 @@ export default function FlagsPage() {
             )
           }
           renderOption={(c, direction) =>
-            direction === 'country-to-flag' ? <FlagSwatch cca2={c.cca2} className="!h-12 !w-20" /> : c.name
+            direction === 'country-to-flag' ? (
+              <FlagSwatch cca2={c.cca2} className="!h-20 !w-28 sm:!h-24 sm:!w-32" />
+            ) : (
+              c.name
+            )
           }
         />
       )}
