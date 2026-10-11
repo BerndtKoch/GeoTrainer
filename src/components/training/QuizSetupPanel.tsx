@@ -13,14 +13,17 @@ export interface QuizSettings {
 
 interface QuizSetupPanelProps {
   directions?: { id: string; label: string }[];
+  /** Pre-fills the panel (e.g. returning from a finished quiz keeps what
+   * you last picked) instead of resetting to defaults. */
+  initialSettings?: QuizSettings;
   onStart: (settings: QuizSettings) => void;
 }
 
-export default function QuizSetupPanel({ directions, onStart }: QuizSetupPanelProps) {
-  const [direction, setDirection] = useState(directions?.[0]?.id ?? null);
-  const [scope, setScope] = useState<Scope>('all');
-  const [strategy, setStrategy] = useState<Strategy>('cycle');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+export default function QuizSetupPanel({ directions, initialSettings, onStart }: QuizSetupPanelProps) {
+  const [direction, setDirection] = useState(initialSettings?.direction ?? directions?.[0]?.id ?? null);
+  const [scope, setScope] = useState<Scope>(initialSettings?.scope ?? 'all');
+  const [strategy, setStrategy] = useState<Strategy>(initialSettings?.strategy ?? 'cycle');
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialSettings?.difficulty ?? 'medium');
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">

@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import type { Country } from '@/lib/types';
 import type { QuizQuestion } from '@/lib/training';
+import { getQuestionStatsByCcn3, type TrainingCategory } from '@/lib/trainingStorage';
 
 const DIFFICULTY_STYLE: Record<QuizQuestion['difficulty'], string> = {
   easy: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
@@ -10,16 +11,31 @@ const DIFFICULTY_STYLE: Record<QuizQuestion['difficulty'], string> = {
   hard: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
 };
 
+const REVIEW_ATTEMPTS = 5;
+
 interface QuizRunnerProps {
   questions: QuizQuestion[];
+  category: TrainingCategory;
+  direction: string | null;
   renderPrompt: (q: QuizQuestion) => ReactNode;
   renderOption: (c: Country) => ReactNode;
   onAnswer: (q: QuizQuestion, chosen: Country, correct: boolean) => void;
   onFinish: (correctCount: number, total: number) => void;
-  onRestart: () => void;
+  onPlayAgain: () => void;
+  onReturnToSetup: () => void;
 }
 
-export default function QuizRunner({ questions, renderPrompt, renderOption, onAnswer, onFinish, onRestart }: QuizRunnerProps) {
+export default function QuizRunner({
+  questions,
+  category,
+  direction,
+  renderPrompt,
+  renderOption,
+  onAnswer,
+  onFinish,
+  onPlayAgain,
+  onReturnToSetup,
+}: QuizRunnerProps) {
   const [index, setIndex] = useState(0);
   const [chosenCcn3, setChosenCcn3] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -36,20 +52,100 @@ export default function QuizRunner({ questions, renderPrompt, renderOption, onAn
 
   if (finished) {
     const pct = Math.round((correctCount / questions.length) * 100);
+    // Read fresh (not on mount) — by the time this renders, this quiz's own
+    // attempts are already saved, so "the last 5" naturally includes the one
+    // just finished. Safe to call directly rather than via useEffect: this
+    // branch only ever renders after a client-side interaction, never during
+    // the initial server-rendered pass, so there's no hydration-mismatch risk.
+    const statsByCcn3 = getQuestionStatsByCcn3(category, direction);
+    const review = questions
+      .map((q) => {
+        const recent = (statsByCcn3.get(q.ccn3)?.attempts ?? []).slice(-REVIEW_ATTEMPTS);
+        const correctOfRecent = recent.filter(Boolean).length;
+        return {
+          ccn3: q.ccn3,
+          name: q.answerCountry.name,
+          recent,
+          percent: recent.length ? Math.round((correctOfRecent / recent.length) * 100) : null,
+        };
+      })
+      .sort((a, b) => (a.percent ?? 0) - (b.percent ?? 0));
+
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800">
-        <p className="text-sm font-semibold tracking-wide text-slate-400 uppercase">Test complete</p>
-        <p className="text-4xl font-bold text-slate-900 dark:text-white">
-          {correctCount} / {questions.length}
-        </p>
-        <p className="text-sm text-slate-500 dark:text-slate-400">{pct}% correct</p>
-        <button
-          type="button"
-          onClick={onRestart}
-          className="mt-3 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
-        >
-          Take another quiz
-        </button>
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800">
+          <p className="text-sm font-semibold tracking-wide text-slate-400 uppercase">Test complete</p>
+          <p className="text-4xl font-bold text-slate-900 dark:text-white">
+            {correctCount} / {questions.length}
+          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{pct}% correct</p>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={onPlayAgain}
+              className="rounded-full border border-emerald-600 px-5 py-2.5 text-sm font-semibold text-emerald-600 shadow-sm transition-colors hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+            >
+              Play again
+            </button>
+            <button
+              type="button"
+              onClick={onReturnToSetup}
+              className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+            >
+              Take another quiz
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 dark:bg-slate-800/60">
+                <th className="px-3 py-2 text-left font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400">
+                  Country
+                </th>
+                <th className="px-1.5 py-2 text-center text-xs font-medium text-slate-400" colSpan={REVIEW_ATTEMPTS}>
+                  Last {REVIEW_ATTEMPTS}
+                </th>
+                <th className="px-3 py-2 text-right font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400">
+                  % of {REVIEW_ATTEMPTS}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {review.map((row, rowIndex) => {
+                const padding = REVIEW_ATTEMPTS - row.recent.length;
+                return (
+                  <tr
+                    key={row.ccn3}
+                    className={rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60'}
+                  >
+                    <td className="px-3 py-2 align-middle font-medium whitespace-nowrap text-slate-800 dark:text-slate-100">
+                      {row.name}
+                    </td>
+                    {Array.from({ length: REVIEW_ATTEMPTS }, (_, i) => {
+                      const value = i < padding ? null : row.recent[i - padding];
+                      return (
+                        <td key={i} className="px-1.5 py-2 text-center align-middle">
+                          {value === null || value === undefined ? (
+                            <span className="text-slate-200 dark:text-slate-700">&middot;</span>
+                          ) : value ? (
+                            <span className="font-semibold text-emerald-500">&#10003;</span>
+                          ) : (
+                            <span className="font-semibold text-rose-500">&#10007;</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="px-3 py-2 text-right align-middle font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300">
+                      {row.percent}%
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }

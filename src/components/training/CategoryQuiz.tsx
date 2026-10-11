@@ -16,6 +16,11 @@ interface CategoryQuizProps {
 }
 
 export default function CategoryQuiz({ category, countries, directions, renderPrompt, renderOption }: CategoryQuizProps) {
+  // settings survives a "take another quiz" (so the setup panel can be
+  // pre-filled with it) — only questions/testId get cleared to go back to
+  // the setup screen. "Play again" is the opposite: keeps questions as-is
+  // (a literal repeat) and only bumps testId, which remounts QuizRunner
+  // (keyed on it) to reset its own per-attempt state.
   const [settings, setSettings] = useState<QuizSettings | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[] | null>(null);
   const [testId, setTestId] = useState<string | null>(null);
@@ -28,19 +33,25 @@ export default function CategoryQuiz({ category, countries, directions, renderPr
     setTestId(newTestId());
   }
 
-  function restart() {
-    setSettings(null);
+  function playAgain() {
+    setTestId(newTestId());
+  }
+
+  function returnToSetup() {
     setQuestions(null);
     setTestId(null);
   }
 
   if (!settings || !questions) {
-    return <QuizSetupPanel directions={directions} onStart={start} />;
+    return <QuizSetupPanel directions={directions} initialSettings={settings ?? undefined} onStart={start} />;
   }
 
   return (
     <QuizRunner
+      key={testId}
       questions={questions}
+      category={category}
+      direction={settings.direction}
       renderPrompt={(q) => renderPrompt(q, settings.direction)}
       renderOption={(c) => renderOption(c, settings.direction)}
       onAnswer={(q, _chosen, correct) => {
@@ -65,7 +76,8 @@ export default function CategoryQuiz({ category, countries, directions, renderPr
           total,
         });
       }}
-      onRestart={restart}
+      onPlayAgain={playAgain}
+      onReturnToSetup={returnToSetup}
     />
   );
 }
