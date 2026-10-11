@@ -8,9 +8,23 @@ import CategoryQuiz from '@/components/training/CategoryQuiz';
 import HistoryGrid from '@/components/training/HistoryGrid';
 
 type View = 'study' | 'quiz' | 'history';
+type FlagsDirection = 'flag-to-country' | 'country-to-flag';
+
+const DIRECTIONS: { id: FlagsDirection; label: string }[] = [
+  { id: 'flag-to-country', label: 'Flag → Country' },
+  { id: 'country-to-flag', label: 'Country → Flag' },
+];
+
+function FlagSwatch({ cca2, className }: { cca2: string; className: string }) {
+  // Sizing uses the `!` (important) modifier because flag-icons' own
+  // stylesheet sets `.fi { width: 1.333333em }` — a plain Tailwind width
+  // utility has the same specificity and silently loses that tie.
+  return <span className={`fi fi-${cca2.toLowerCase()} rounded-md ${className}`} aria-hidden />;
+}
 
 export default function FlagsPage() {
   const [view, setView] = useState<View>('study');
+  const [historyDirection, setHistoryDirection] = useState<FlagsDirection>('flag-to-country');
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -35,12 +49,7 @@ export default function FlagsPage() {
         <StudyList
           countries={COUNTRIES}
           category="flags"
-          renderAnswer={(c) => (
-            <span
-              className={`fi fi-${c.cca2.toLowerCase()} !h-[54px] !w-[72px] rounded-sm`}
-              aria-hidden
-            />
-          )}
+          renderAnswer={(c) => <FlagSwatch cca2={c.cca2} className="!h-[54px] !w-[72px]" />}
         />
       )}
 
@@ -48,34 +57,35 @@ export default function FlagsPage() {
         <CategoryQuiz
           category="flags"
           countries={COUNTRIES}
-          renderPrompt={(q) => (
-            // Sizing uses the `!` (important) modifier because flag-icons'
-            // own stylesheet sets `.fi { width: 1.333333em }` — a plain
-            // Tailwind width utility has the same specificity and silently
-            // loses that tie, which is why this flag (and the one on the
-            // country card) rendered far narrower than intended despite
-            // having an explicit w-* class already.
-            <span
-              className={`fi fi-${q.answerCountry.cca2.toLowerCase()} !h-32 !w-52 rounded-md shadow-sm sm:!h-48 sm:!w-80 lg:!h-80 lg:!w-[32rem]`}
-              aria-label={`Flag of ${q.answerCountry.name}`}
-            />
-          )}
-          renderOption={(c) => c.name}
+          directions={DIRECTIONS}
+          renderPrompt={(q, direction) =>
+            direction === 'country-to-flag' ? (
+              <p className="text-center text-2xl font-bold text-slate-900 dark:text-white">
+                {q.answerCountry.name}
+              </p>
+            ) : (
+              <FlagSwatch
+                cca2={q.answerCountry.cca2}
+                className="!h-32 !w-52 shadow-sm sm:!h-48 sm:!w-80 lg:!h-80 lg:!w-[32rem]"
+              />
+            )
+          }
+          renderOption={(c, direction) =>
+            direction === 'country-to-flag' ? <FlagSwatch cca2={c.cca2} className="!h-12 !w-20" /> : c.name
+          }
         />
       )}
 
       {view === 'history' && (
-        <HistoryGrid
-          countries={COUNTRIES}
-          category="flags"
-          direction={null}
-          renderAnswer={(c) => (
-            <span
-              className={`fi fi-${c.cca2.toLowerCase()} !h-12 !w-16 rounded-sm`}
-              aria-hidden
-            />
-          )}
-        />
+        <div className="flex flex-col gap-4">
+          <SubTabs options={DIRECTIONS} value={historyDirection} onChange={setHistoryDirection} />
+          <HistoryGrid
+            countries={COUNTRIES}
+            category="flags"
+            direction={historyDirection}
+            renderAnswer={(c) => <FlagSwatch cca2={c.cca2} className="!h-12 !w-16" />}
+          />
+        </div>
       )}
     </div>
   );
