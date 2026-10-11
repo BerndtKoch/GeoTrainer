@@ -159,22 +159,10 @@ export interface QuestionStats {
   lastTimestamp: number;
 }
 
-/**
- * Every attempt ever made, aggregated per country — the basis for both the
- * history grid (which shows the full, uncapped attempt list per row) and the
- * quiz-generation strategies (cycle picks the longest-untested; weak picks
- * the lowest percentCorrect). Nothing here is pruned: the data is small
- * enough (a season of daily quizzing is well under a megabyte as JSON) that
- * capping storage isn't worth the complexity — only the grid's rendered
- * columns are capped, at render time, not here.
- */
-export function getQuestionStatsByCcn3(
-  category: TrainingCategory,
-  direction: string | null = null
-): Map<string, QuestionStats> {
-  const events = getAttempts(category, direction).sort((a, b) => a.timestamp - b.timestamp);
+function aggregateStatsByCcn3(events: AttemptEvent[]): Map<string, QuestionStats> {
+  const sorted = [...events].sort((a, b) => a.timestamp - b.timestamp);
   const map = new Map<string, QuestionStats>();
-  for (const e of events) {
+  for (const e of sorted) {
     let stats = map.get(e.ccn3);
     if (!stats) {
       stats = { ccn3: e.ccn3, attempts: [], correctCount: 0, totalCount: 0, percentCorrect: null, lastTimestamp: 0 };
@@ -189,4 +177,30 @@ export function getQuestionStatsByCcn3(
     stats.percentCorrect = stats.totalCount > 0 ? Math.round((stats.correctCount / stats.totalCount) * 100) : null;
   }
   return map;
+}
+
+/**
+ * Every attempt ever made, aggregated per country — the basis for both the
+ * history grid (which shows the full, uncapped attempt list per row) and the
+ * quiz-generation strategies (cycle picks the longest-untested; weak picks
+ * the lowest percentCorrect). Nothing here is pruned: the data is small
+ * enough (a season of daily quizzing is well under a megabyte as JSON) that
+ * capping storage isn't worth the complexity — only the grid's rendered
+ * columns are capped, at render time, not here.
+ */
+export function getQuestionStatsByCcn3(
+  category: TrainingCategory,
+  direction: string | null = null
+): Map<string, QuestionStats> {
+  return aggregateStatsByCcn3(getAttempts(category, direction));
+}
+
+/**
+ * Same aggregation, but across every direction a category has (e.g. both
+ * Country→Capital and Capital→Country) — the study list shows one combined
+ * "how well do you know this one" score per country rather than asking
+ * which direction's score to show.
+ */
+export function getQuestionStatsByCcn3AnyDirection(category: TrainingCategory): Map<string, QuestionStats> {
+  return aggregateStatsByCcn3(readAttemptsMigrated().filter((a) => a.category === category));
 }

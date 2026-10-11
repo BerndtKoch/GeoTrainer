@@ -49,7 +49,7 @@ export default function FlagsPage() {
         <StudyList
           countries={COUNTRIES}
           category="flags"
-          renderAnswer={(c) => <FlagSwatch cca2={c.cca2} className="!h-[54px] !w-[72px]" />}
+          renderAnswer={(c) => <FlagSwatch cca2={c.cca2} className="!h-24 !w-32" />}
         />
       )}
 

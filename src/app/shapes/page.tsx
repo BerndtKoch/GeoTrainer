@@ -43,7 +43,7 @@ export default function ShapesPage() {
         <StudyList
           countries={COUNTRIES}
           category="shapes"
-          renderAnswer={(c) => <CountryOutline ccn3={c.ccn3} className="h-10 w-10 text-emerald-600" />}
+          renderAnswer={(c) => <CountryOutline ccn3={c.ccn3} className="h-20 w-20 text-emerald-600" />}
         />
       )}
 
