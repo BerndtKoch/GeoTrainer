@@ -1,4 +1,5 @@
 import { geoEqualEarth, geoPath } from 'd3-geo';
+import type { Feature, Polygon, Position } from 'geojson';
 import { getCountryPrimaryShape } from '@/lib/worldGeo';
 
 interface CountryOutlineProps {
@@ -7,6 +8,17 @@ interface CountryOutlineProps {
 }
 
 const SIZE = 140;
+
+// Below this rendered size (viewBox units, out of the fixed 140 SIZE above),
+// a landmass is given a minimum-size dot instead of its true path. Without
+// this, a nation made of a few atolls scattered across thousands of km of
+// ocean (Kiribati, Marshall Islands, Micronesia) renders as an essentially
+// invisible 2-3px speck even at its largest island — true-to-scale with
+// almost no land area just can't be made visible by fitting the bounding
+// box alone. Calibrated against the smallest places this component is
+// actually shown (the study list and history grid's small icons, ~32-40px
+// on screen) so even those keep a legible dot rather than a blank icon.
+const MIN_PART_DIAMETER = 14;
 
 export default function CountryOutline({ ccn3, className }: CountryOutlineProps) {
   const primary = getCountryPrimaryShape(ccn3);
@@ -29,8 +41,28 @@ export default function CountryOutline({ ccn3, className }: CountryOutlineProps)
   // getCountryPrimaryShape's doc comment for the full story.
   const projection = geoEqualEarth().rotate([-centroid[0], 0]).fitSize([SIZE - 8, SIZE - 8], feature);
   const path = geoPath(projection);
-  const d = path(feature);
-  if (!d) return null;
+
+  const parts: Position[][][] =
+    feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+
+  const renderedParts = parts
+    .map((coordinates) => {
+      const polygon: Feature<Polygon> = { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates } };
+      const bounds = path.bounds(polygon);
+      const width = bounds[1][0] - bounds[0][0];
+      const height = bounds[1][1] - bounds[0][1];
+      if (Math.max(width, height) < MIN_PART_DIAMETER) {
+        return {
+          type: 'dot' as const,
+          cx: (bounds[0][0] + bounds[1][0]) / 2,
+          cy: (bounds[0][1] + bounds[1][1]) / 2,
+        };
+      }
+      return { type: 'path' as const, d: path(polygon) ?? undefined };
+    })
+    .filter((part) => part.type === 'dot' || !!part.d);
+
+  if (renderedParts.length === 0) return null;
 
   return (
     <svg
@@ -40,7 +72,19 @@ export default function CountryOutline({ ccn3, className }: CountryOutlineProps)
       aria-label="Country outline / shape"
     >
       <g transform="translate(4, 4)">
-        <path d={d} className="fill-emerald-600 dark:fill-emerald-500" />
+        {renderedParts.map((part, i) =>
+          part.type === 'dot' ? (
+            <circle
+              key={i}
+              cx={part.cx}
+              cy={part.cy}
+              r={MIN_PART_DIAMETER / 2}
+              className="fill-emerald-600 dark:fill-emerald-500"
+            />
+          ) : (
+            <path key={i} d={part.d} className="fill-emerald-600 dark:fill-emerald-500" />
+          )
+        )}
       </g>
     </svg>
   );
