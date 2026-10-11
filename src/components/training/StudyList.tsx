@@ -56,13 +56,13 @@ export default function StudyList({ countries, category, renderAnswer }: StudyLi
       {grouped.map((group) => (
         <div key={group.region}>
           <h3 className="mb-2 text-sm font-semibold tracking-wide text-slate-400 uppercase">{group.region}</h3>
-          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-700">
             {group.items.map((country, i) => {
               const percent = statsByCcn3?.get(country.ccn3)?.percentCorrect ?? null;
               return (
                 <div
                   key={country.ccn3}
-                  className={`flex flex-col gap-1.5 border-b border-slate-100 px-3 py-2.5 last:border-b-0 dark:border-slate-700/60 ${
+                  className={`flex flex-col gap-1.5 border-b border-slate-100 px-3 py-2.5 transition-colors last:border-b-0 hover:bg-emerald-50/60 dark:border-slate-700/60 dark:hover:bg-slate-700/40 ${
                     i % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60'
                   }`}
                 >

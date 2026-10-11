@@ -21,10 +21,10 @@ export default function TrainingNav() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all duration-150 ${
               active
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                : 'bg-slate-100 text-slate-600 hover:-translate-y-0.5 hover:bg-slate-200 hover:shadow-sm dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             }`}
           >
             {tab.label}

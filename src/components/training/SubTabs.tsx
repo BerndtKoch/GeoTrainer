@@ -14,10 +14,10 @@ export default function SubTabs<T extends string>({ options, value, onChange }: 
           key={opt.id}
           type="button"
           onClick={() => onChange(opt.id)}
-          className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+          className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-150 ${
             value === opt.id
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+              : 'bg-slate-100 text-slate-600 hover:-translate-y-0.5 hover:bg-slate-200 hover:shadow-sm dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
           }`}
         >
           {opt.label}

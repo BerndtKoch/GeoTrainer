@@ -80,7 +80,7 @@ export default function QuizRunner({
 
     return (
       <div className="flex flex-col gap-5">
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <p className="text-sm font-semibold tracking-wide text-slate-400 uppercase">Test complete</p>
           <p className="text-4xl font-bold text-slate-900 dark:text-white">
             {correctCount} / {questions.length}
@@ -90,14 +90,14 @@ export default function QuizRunner({
             <button
               type="button"
               onClick={onPlayAgain}
-              className="rounded-full border border-emerald-600 px-5 py-2.5 text-sm font-semibold text-emerald-600 shadow-sm transition-colors hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+              className="rounded-full border border-emerald-600 px-5 py-2.5 text-sm font-semibold text-emerald-600 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow-md dark:text-emerald-400 dark:hover:bg-emerald-900/30"
             >
               Play again
             </button>
             <button
               type="button"
               onClick={onReturnToSetup}
-              className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+              className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-600/30 transition-all duration-150 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/40"
             >
               Take another quiz
             </button>
@@ -106,7 +106,7 @@ export default function QuizRunner({
 
         <p className="text-xs text-slate-400">Click a row to see what you picked on each past attempt.</p>
 
-        <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-700">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/60">
@@ -130,7 +130,7 @@ export default function QuizRunner({
                   <Fragment key={row.ccn3}>
                     <tr
                       onClick={() => toggleExpanded(row.ccn3)}
-                      className={`cursor-pointer ${stripe}`}
+                      className={`cursor-pointer transition-colors hover:bg-emerald-50/60 dark:hover:bg-slate-700/40 ${stripe}`}
                     >
                       <td className="px-3 py-2 align-middle font-medium whitespace-nowrap text-slate-800 dark:text-slate-100">
                         <span className="mr-1.5 inline-block w-3 text-slate-400">{isOpen ? '▾' : '▸'}</span>
@@ -198,7 +198,7 @@ export default function QuizRunner({
   }
 
   return (
-    <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+    <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
         Question {index + 1} of {questions.length}
       </div>
@@ -209,7 +209,8 @@ export default function QuizRunner({
         {question.optionCountries.map((option) => {
           const isCorrectOption = option.ccn3 === question.answerCountry.ccn3;
           const isChosen = option.ccn3 === chosenCcn3;
-          let style = 'border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 dark:border-slate-600 dark:hover:bg-slate-700';
+          let style =
+            'border-slate-200 hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-md dark:border-slate-600 dark:hover:bg-slate-700';
           if (answered && isCorrectOption) {
             style = 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
           } else if (answered && isChosen) {
@@ -223,7 +224,7 @@ export default function QuizRunner({
               type="button"
               disabled={answered}
               onClick={() => pick(option)}
-              className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${style}`}
+              className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-all duration-150 ${style}`}
             >
               {renderOption(option)}
             </button>
@@ -235,7 +236,7 @@ export default function QuizRunner({
         <button
           type="button"
           onClick={next}
-          className="self-end rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+          className="self-end rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-600/30 transition-all duration-150 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/40"
         >
           {isLast ? 'See results' : 'Next question'}
         </button>

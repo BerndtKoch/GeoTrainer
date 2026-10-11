@@ -24,7 +24,7 @@ export default function QuizSetupPanel({ directions, initialSettings, onStart }:
   const [strategy, setStrategy] = useState<Strategy>(initialSettings?.strategy ?? 'cycle');
 
   return (
-    <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+    <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       {directions && directions.length > 1 && (
         <Field label="Direction">
           <SegmentedControl
@@ -51,7 +51,7 @@ export default function QuizSetupPanel({ directions, initialSettings, onStart }:
       <button
         type="button"
         onClick={() => onStart({ direction, scope, strategy })}
-        className="mt-1 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+        className="mt-1 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-600/30 transition-all duration-150 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/40"
       >
         Start quiz
       </button>
@@ -86,10 +86,10 @@ function SegmentedControl<T extends string>({
           key={opt.id}
           type="button"
           onClick={() => onChange(opt.id)}
-          className={`rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+          className={`rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all duration-150 ${
             value === opt.id
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+              : 'bg-slate-100 text-slate-600 hover:-translate-y-0.5 hover:bg-slate-200 hover:shadow-sm dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
           }`}
         >
           {opt.label}

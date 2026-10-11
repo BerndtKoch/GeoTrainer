@@ -69,7 +69,7 @@ export default function HistoryGrid({ countries, category, direction, renderAnsw
     <div className="flex flex-col gap-6">
       <RegionPicker value={region} onChange={setRegion} />
       <p className="text-xs text-slate-400">Click a row to see what you picked on each past attempt.</p>
-      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm dark:border-slate-700">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800/60">
@@ -96,7 +96,10 @@ export default function HistoryGrid({ countries, category, direction, renderAnsw
               const stripe = rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60';
               return (
                 <Fragment key={country.ccn3}>
-                  <tr onClick={() => toggleExpanded(country.ccn3)} className={`cursor-pointer ${stripe}`}>
+                  <tr
+                    onClick={() => toggleExpanded(country.ccn3)}
+                    className={`cursor-pointer transition-colors hover:bg-emerald-50/60 dark:hover:bg-slate-700/40 ${stripe}`}
+                  >
                     <td className="sticky left-0 bg-inherit px-3 py-2 align-middle font-medium whitespace-nowrap text-slate-800 dark:text-slate-100">
                       <span className="mr-1.5 inline-block w-3 text-slate-400">{isOpen ? '▾' : '▸'}</span>
                       {country.name}

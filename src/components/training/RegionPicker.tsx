@@ -15,10 +15,10 @@ export default function RegionPicker({ value, onChange }: RegionPickerProps) {
           key={opt.id}
           type="button"
           onClick={() => onChange(opt.id)}
-          className={`rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+          className={`rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all duration-150 ${
             value === opt.id
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+              : 'bg-slate-100 text-slate-600 hover:-translate-y-0.5 hover:bg-slate-200 hover:shadow-sm dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
           }`}
         >
           {opt.label}
