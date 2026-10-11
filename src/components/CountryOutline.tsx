@@ -18,6 +18,16 @@ const SIZE = 140;
 // box alone. Calibrated against the smallest places this component is
 // actually shown (the study list and history grid's small icons, ~32-40px
 // on screen) so even those keep a legible dot rather than a blank icon.
+//
+// Only applies when the LARGEST part is itself below this size — i.e. the
+// whole country has no single dominant landmass to anchor recognizability
+// (Kiribati's atolls are all comparably tiny). A country with one big,
+// already-recognizable main landmass and some genuinely small satellite
+// islands (Greece's mainland + Aegean islands, the UK, Portugal) is left
+// exactly as before: those small islands render at their true tiny size,
+// which is correct in context — inflating them to the same fixed dot size
+// used for Kiribati made them look disproportionately large next to a
+// mainland that was already fine.
 const MIN_PART_DIAMETER = 14;
 
 export default function CountryOutline({ ccn3, className }: CountryOutlineProps) {
@@ -45,13 +55,19 @@ export default function CountryOutline({ ccn3, className }: CountryOutlineProps)
   const parts: Position[][][] =
     feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
 
-  const renderedParts = parts
-    .map((coordinates) => {
-      const polygon: Feature<Polygon> = { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates } };
-      const bounds = path.bounds(polygon);
-      const width = bounds[1][0] - bounds[0][0];
-      const height = bounds[1][1] - bounds[0][1];
-      if (Math.max(width, height) < MIN_PART_DIAMETER) {
+  const partsWithSize = parts.map((coordinates) => {
+    const polygon: Feature<Polygon> = { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates } };
+    const bounds = path.bounds(polygon);
+    const size = Math.max(bounds[1][0] - bounds[0][0], bounds[1][1] - bounds[0][1]);
+    return { polygon, bounds, size };
+  });
+
+  const largestPartSize = Math.max(0, ...partsWithSize.map((p) => p.size));
+  const noDominantLandmass = largestPartSize < MIN_PART_DIAMETER;
+
+  const renderedParts = partsWithSize
+    .map(({ polygon, bounds, size }) => {
+      if (noDominantLandmass && size < MIN_PART_DIAMETER) {
         return {
           type: 'dot' as const,
           cx: (bounds[0][0] + bounds[1][0]) / 2,
